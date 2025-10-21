@@ -2,9 +2,9 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Googleスプレッドシート表示</title>
+    <title>Googleスプレッドシート表示（キャッシュクリア版）</title>
 
-    <!-- ✅ スマホ対応＆ズーム有効 -->
+    <!-- ✅ スマホ対応（ズーム可） -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
     <style>
@@ -12,7 +12,7 @@
             margin: 0;
             padding: 0;
             height: 100%;
-            overflow: hidden;
+            overflow: hidden; /* スクロールはiframeに任せる */
             background: #f0f0f0;
         }
 
@@ -32,20 +32,21 @@
     </style>
 
     <script>
-        const sheetBaseUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pubhtml?gid=1845744529&single=true&widget=true&headers=false";
+        // ✅ GoogleスプレッドシートURL
+        const BASE_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pubhtml?gid=1845744529&single=true&widget=true&headers=false";
 
+        // ✅ iframeのキャッシュをクリアして再読み込み
         function reloadIframe() {
             const iframe = document.getElementById("sheetFrame");
-            // ✅ キャッシュ回避のためにタイムスタンプを付ける
-            iframe.src = sheetBaseUrl + "&t=" + new Date().getTime();
+            const timestamp = Date.now(); // 現在時刻を取得
+            iframe.src = BASE_URL + "&_nocache=" + timestamp; // キャッシュ無効化パラメータ追加
         }
 
-        // ✅ 初回ロード時に設定
-        window.onload = function() {
-            reloadIframe();
-            // ✅ 10秒ごとに再読み込み
-            setInterval(reloadIframe, 10000);
-        };
+        // ✅ ページ読み込み時に実行
+        window.onload = reloadIframe;
+
+        // ✅ 60秒ごとに自動リロード（キャッシュなし）
+        setInterval(reloadIframe, 60000);
     </script>
 </head>
 <body>
