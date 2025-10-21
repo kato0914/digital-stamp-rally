@@ -20,7 +20,13 @@
 // Google スプレッドシートの公開用 URL（tsv 出力用）
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pub?gid=1845744529&single=true&output=tsv";
 
-// スプレッドシートを取得して HTML 表示
+// 順位に応じた色
+const RANK_COLORS = {
+  "1": "#f9ca00",  // ゴールド
+  "2": "#c0c0c0",  // シルバー
+  "3": "#762f07"   // ブロンズ
+};
+
 async function loadSheet() {
   try {
     const res = await fetch(SHEET_URL + "&cb=" + Date.now()); // キャッシュ回避
@@ -36,9 +42,13 @@ async function loadSheet() {
         const td = document.createElement(i===0 ? "th" : "td");
         td.textContent = cell;
 
-        // ✅ 順位列の背景色変更（値が "1" の場合）
-        if (i > 0 && cell.trim() === "1") {
-          td.style.backgroundColor = "#f9ca00";
+        // ヘッダー以外で順位列に応じた色付け
+        if (i > 0) {
+          const rank = row[0].trim(); // 順位は1列目
+          const color = RANK_COLORS[rank];
+          if (color && (j === 0 || j === 1 || j === 2)) { // 順位・チーム名・得点列
+            td.style.backgroundColor = color;
+          }
         }
 
         tr.appendChild(td);
