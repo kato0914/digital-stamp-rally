@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Googleスプレッドシート表示（順位色付き・列幅自動調整）</title>
+<title>Googleスプレッドシート表示（順位色付き・レスポンシブ）</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body {
@@ -14,21 +14,32 @@
 
   .container {
     padding: 10px;
-    overflow:auto;
+    overflow-x:auto; /* 横スクロール可能 */
     max-height: 100vh;
   }
 
   table {
     border-collapse: collapse;
-    table-layout: auto;  /* 列幅自動調整 */
-    width: auto;         /* 内容に合わせて幅を調整 */
+    table-layout: auto; /* 列幅自動調整 */
+    width: 100%;        /* 画面幅に合わせる */
+    max-width: 100%;    /* はみ出さない */
   }
 
   th, td {
     border: 1px solid #ccc;
     padding: 8px;
     text-align: left;
-    white-space: nowrap; /* 文字列に合わせて列幅を広げる */
+    white-space: nowrap; /* 文字列に合わせて列幅を調整 */
+    max-width: 300px;    /* 長すぎる場合は最大幅を設定（任意調整可能） */
+    overflow: hidden;
+    text-overflow: ellipsis; /* 長い文字は省略表示 */
+  }
+
+  @media (max-width: 600px) {
+    th, td {
+      padding: 6px;
+      font-size: 14px;
+    }
   }
 </style>
 </head>
