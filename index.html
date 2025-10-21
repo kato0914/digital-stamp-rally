@@ -1,10 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <title>Googleスプレッドシート表示</title>
-    <meta http-equiv="refresh" content="60">
     <style>
         body {
             margin: 0;
@@ -17,13 +15,13 @@
         }
     </style>
     <script>
-    setTimeout(function() {
-        location.reload();
-    }, 6000); // 60秒ごとにリロード
-</script>
-``
+        // 60秒ごとにページをリロード
+        setTimeout(function() {
+            location.reload();
+        }, 60000);
+    </script>
 </head>
 <body>
     <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pubhtml?gid=1845744529&single=true&widget=true&headers=false"></iframe>
-</body>
-</html>
+
+``
