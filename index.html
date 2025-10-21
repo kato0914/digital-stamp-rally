@@ -30,7 +30,7 @@
             touch-action: manipulation;
         }
 
-        /* ✅ 背景色があるセルの文字色を白にする */
+        /* ✅ 背景色があるセルの文字色を白に */
         table td[style*="background-color"] {
             color: white !important;
         }
@@ -40,12 +40,16 @@
         const sheetBaseUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pubhtml?gid=1845744529&single=true&widget=true&headers=false";
 
         function reloadIframe() {
-            const iframe = document.getElementById("sheetFrame");
-            // ✅ キャッシュ回避のためにタイムスタンプを付ける
+            const container = document.querySelector(".iframe-container");
+            container.innerHTML = ""; // 古いiframeを削除
+            const iframe = document.createElement("iframe");
+            iframe.id = "sheetFrame";
+            iframe.allowFullscreen = true;
+            // ✅ タイムスタンプでキャッシュ回避
             iframe.src = sheetBaseUrl + "&t=" + new Date().getTime();
+            container.appendChild(iframe);
         }
 
-        // ✅ 初回ロード時に設定
         window.onload = function() {
             reloadIframe();
             // ✅ 5秒ごとに再読み込み
@@ -54,8 +58,6 @@
     </script>
 </head>
 <body>
-    <div class="iframe-container">
-        <iframe id="sheetFrame" allowfullscreen></iframe>
-    </div>
+    <div class="iframe-container"></div>
 </body>
 </html>
