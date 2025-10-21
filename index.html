@@ -2,85 +2,91 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Googleスプレッドシート表示</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Googleスプレッドシート表示（順位色付き・列幅自動調整）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-    html, body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        overflow: auto;
-        background: #f0f0f0;
-        font-family: sans-serif;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        table-layout: fixed;
-    }
-    th, td {
-        border: 1px solid #ccc;
-        padding: 8px;
-        text-align: center;
-        word-wrap: break-word;
-    }
+  body {
+    margin:0;
+    padding:0;
+    font-family:sans-serif;
+    background:#f0f0f0;
+  }
+
+  .container {
+    padding: 10px;
+    overflow:auto;
+    max-height: 100vh;
+  }
+
+  table {
+    border-collapse: collapse;
+    table-layout: auto;  /* 列幅自動調整 */
+    width: auto;         /* 内容に合わせて幅を調整 */
+  }
+
+  th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+    white-space: nowrap; /* 文字列に合わせて列幅を広げる */
+  }
 </style>
 </head>
 <body>
-<div id="sheetContainer"></div>
+<div class="container">
+  <table id="sheetTable"></table>
+</div>
 
 <script>
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pub?output=tsv";
+// Google スプレッドシートの公開用 URL（tsv 出力用）
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pub?gid=1845744529&single=true&output=tsv";
 
-// 順位ごとの色
+// 順位に応じた色
 const RANK_COLORS = {
-  "1": "#f9ca00",
-  "2": "#c0c0c0",
-  "3": "#762f07"
+  "1": "#f9ca00",  // ゴールド
+  "2": "#c0c0c0",  // シルバー
+  "3": "#762f07"   // ブロンズ
 };
 
 async function loadSheet() {
-    try {
-        const res = await fetch(SHEET_URL + "&t=" + new Date().getTime());
-        const text = await res.text();
-        const rows = text.trim().split("\n").map(r => r.split("\t"));
+  try {
+    // キャッシュ回避のためURL末尾にタイムスタンプを付与
+    const res = await fetch(SHEET_URL + "&cb=" + Date.now());
+    const tsv = await res.text();
+    const rows = tsv.trim().split("\n").map(r => r.split("\t"));
 
-        const container = document.getElementById("sheetContainer");
-        container.innerHTML = "";
+    const table = document.getElementById("sheetTable");
+    table.innerHTML = "";
 
-        const table = document.createElement("table");
+    rows.forEach((row, i) => {
+      const tr = document.createElement("tr");
+      row.forEach((cell, j) => {
+        const td = document.createElement(i===0 ? "th" : "td");
+        td.textContent = cell;
 
-        rows.forEach((row, rowIndex) => {
-            const tr = document.createElement("tr");
+        // ヘッダー以外で順位列に応じた色付け
+        if (i > 0) {
+          const rank = row[0].trim(); // 順位は1列目
+          const color = RANK_COLORS[rank];
+          if (color && (j === 0 || j === 1 || j === 2)) { // 順位・チーム名・得点列
+            td.style.backgroundColor = color;
+          }
+        }
 
-            row.forEach((cell, colIndex) => {
-                const td = document.createElement(rowIndex === 0 ? "th" : "td");
-                td.textContent = cell;
-
-                if(rowIndex > 0) {
-                    const rank = row[0].trim(); // 順位列を1列目と仮定
-                    if(RANK_COLORS[rank] && (colIndex === 0 || colIndex === 1 || colIndex === 2)) {
-                        // 順位、チーム名、得点列に同色
-                        td.style.backgroundColor = RANK_COLORS[rank];
-                        td.style.color = "white";
-                    }
-                }
-
-                tr.appendChild(td);
-            });
-
-            table.appendChild(tr);
-        });
-
-        container.appendChild(table);
-    } catch (e) {
-        console.error("スプレッドシート読み込みエラー", e);
-    }
+        tr.appendChild(td);
+      });
+      table.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("スプレッドシートの読み込みに失敗しました", err);
+  }
 }
 
-// 初回読み込みと5秒ごとの更新
+// 初回ロード
 loadSheet();
-setInterval(loadSheet, 5000);
+
+// 10秒ごとに更新
+setInterval(loadSheet, 10000);
 </script>
 </body>
 </html>
