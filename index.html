@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Googleスプレッドシート表示（順位色付き・中央寄せ・キャッシュ回避）</title>
+<title>Googleスプレッドシート表示（軽量化・中央寄せ）</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body {
@@ -20,20 +20,20 @@
 
   table {
     border-collapse: collapse;
-    table-layout: auto; /* 列幅自動調整 */
-    width: auto;        /* 内容に合わせる */
-    max-width: 100%;    /* 画面幅を超えない */
-    margin: 0 auto;     /* 表全体を中央寄せ */
+    table-layout: auto;
+    width: auto;
+    max-width: 100%;
+    margin: 0 auto;
   }
 
   th, td {
     border: 1px solid #ccc;
     padding: 8px;
-    text-align: center; /* 文字を中央寄せ */
-    white-space: nowrap; /* 文字列に合わせて列幅を調整 */
-    max-width: 300px;    /* 長すぎる場合は最大幅 */
+    text-align: center;
+    white-space: nowrap;
+    max-width: 300px;
     overflow: hidden;
-    text-overflow: ellipsis; /* 長い文字は省略表示 */
+    text-overflow: ellipsis;
   }
 
   @media (max-width: 600px) {
@@ -50,49 +50,58 @@
 </div>
 
 <script>
-// Google スプレッドシートの公開用 URL（tsv 出力用）
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pub?gid=1845744529&single=true&output=tsv";
 
-// 順位に応じた色
 const RANK_COLORS = {
-  "1": "#f9ca00",  // ゴールド
-  "2": "#c0c0c0",  // シルバー
-  "3": "#762f07"   // ブロンズ
+  "1": "#f9ca00",
+  "2": "#c0c0c0",
+  "3": "#762f07"
 };
 
 async function loadSheet() {
   try {
-    // キャッシュ回避：URLにタイムスタンプと乱数を付与 + fetchのcache:no-store
-    const res = await fetch(SHEET_URL + `&cb=${Date.now()}&r=${Math.random()}`, {
-      cache: "no-store"
-    });
+    const container = document.querySelector('.container');
+    const scrollLeft = container.scrollLeft;
 
+    const res = await fetch(SHEET_URL + `&cb=${Date.now()}&r=${Math.random()}`, { cache: "no-store" });
     const tsv = await res.text();
     const rows = tsv.trim().split("\n").map(r => r.split("\t"));
 
     const table = document.getElementById("sheetTable");
-    table.innerHTML = "";
+
+    // 行数が違う場合は行を追加/削除
+    while (table.rows.length < rows.length) table.appendChild(document.createElement("tr"));
+    while (table.rows.length > rows.length) table.deleteRow(table.rows.length - 1);
 
     rows.forEach((row, i) => {
-      const tr = document.createElement("tr");
+      const tr = table.rows[i];
+      // セル数調整
+      while (tr.cells.length < row.length) tr.appendChild(document.createElement(i===0?"th":"td"));
+      while (tr.cells.length > row.length) tr.deleteCell(tr.cells.length - 1);
+
       row.forEach((cell, j) => {
-        const td = document.createElement(i===0 ? "th" : "td");
+        const td = tr.cells[j];
         td.textContent = cell;
 
-        // 順位列に応じた色付け
-        if (i > 0) {
-          const rank = row[0].trim(); // 順位は1列目
+        // ヘッダー以外の順位列色付け
+        if (i > 0 && (j === 0 || j === 1 || j === 2)) {
+          const rank = row[0].trim();
           const color = RANK_COLORS[rank];
-          if (color && (j === 0 || j === 1 || j === 2)) {
+          if (color) {
             td.style.backgroundColor = color;
-            td.style.color = "#ffffff"; // 文字色を白に
+            td.style.color = "#ffffff";
+          } else {
+            td.style.backgroundColor = "";
+            td.style.color = "";
           }
+        } else if (i === 0) {
+          td.style.backgroundColor = "";
+          td.style.color = "";
         }
-
-        tr.appendChild(td);
       });
-      table.appendChild(tr);
     });
+
+    container.scrollLeft = scrollLeft; // スクロール位置を維持
   } catch (err) {
     console.error("スプレッドシートの読み込みに失敗しました", err);
   }
