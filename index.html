@@ -30,7 +30,7 @@
     padding: 8px;
     text-align: left;
     white-space: nowrap; /* 文字列に合わせて列幅を調整 */
-    max-width: 300px;    /* 長すぎる場合は最大幅を設定（任意調整可能） */
+    max-width: 300px;    /* 長すぎる場合は最大幅 */
     overflow: hidden;
     text-overflow: ellipsis; /* 長い文字は省略表示 */
   }
@@ -61,7 +61,7 @@ const RANK_COLORS = {
 
 async function loadSheet() {
   try {
-    // キャッシュ回避のためURL末尾にタイムスタンプを付与
+    // キャッシュ回避
     const res = await fetch(SHEET_URL + "&cb=" + Date.now());
     const tsv = await res.text();
     const rows = tsv.trim().split("\n").map(r => r.split("\t"));
@@ -75,12 +75,13 @@ async function loadSheet() {
         const td = document.createElement(i===0 ? "th" : "td");
         td.textContent = cell;
 
-        // ヘッダー以外で順位列に応じた色付け
+        // 順位列に応じた色付け
         if (i > 0) {
           const rank = row[0].trim(); // 順位は1列目
           const color = RANK_COLORS[rank];
-          if (color && (j === 0 || j === 1 || j === 2)) { // 順位・チーム名・得点列
+          if (color && (j === 0 || j === 1 || j === 2)) {
             td.style.backgroundColor = color;
+            td.style.color = "#ffffff"; // 文字色を白に
           }
         }
 
