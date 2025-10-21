@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Googleスプレッドシート表示</title>
 
-    <!-- ✅ スマホ対応でズームを有効にする -->
+    <!-- ✅ スマホ対応＆ズーム有効 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
     <style>
@@ -12,7 +12,7 @@
             margin: 0;
             padding: 0;
             height: 100%;
-            overflow: hidden; /* スクロールをiframeに任せる */
+            overflow: hidden;
             background: #f0f0f0;
         }
 
@@ -20,7 +20,7 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            -webkit-overflow-scrolling: touch; /* iOSでの慣性スクロール対応 */
+            -webkit-overflow-scrolling: touch; /* iOS慣性スクロール */
         }
 
         iframe {
@@ -28,23 +28,24 @@
             height: 100%;
             border: none;
             touch-action: manipulation;
-            -ms-touch-action: manipulation;
         }
     </style>
 
     <script>
-        // ✅ タイムスタンプ付きURLを生成してiframeに設定
-        function loadIframe() {
+        const sheetBaseUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pubhtml?gid=1845744529&single=true&widget=true&headers=false";
+
+        function reloadIframe() {
             const iframe = document.getElementById("sheetFrame");
-            const baseUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pubhtml?gid=1845744529&single=true&widget=true&headers=false";
-            iframe.src = baseUrl + "&tstamp=" + Date.now();
+            // ✅ キャッシュ回避のためにタイムスタンプを付ける
+            iframe.src = sheetBaseUrl + "&t=" + new Date().getTime();
         }
 
-        // ✅ 初回ロード
-        window.onload = loadIframe;
-
-        // ✅ 60秒ごとに再読み込み
-        setInterval(loadIframe, 10000);
+        // ✅ 初回ロード時に設定
+        window.onload = function() {
+            reloadIframe();
+            // ✅ 10秒ごとに再読み込み
+            setInterval(reloadIframe, 10000);
+        };
     </script>
 </head>
 <body>
