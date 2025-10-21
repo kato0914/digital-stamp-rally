@@ -2,12 +2,28 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>スプレッドシート表示</title>
+<title>Googleスプレッドシート表示</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <style>
-    body { margin:0; padding:0; background:#f0f0f0; font-family:sans-serif; }
-    table { width:100%; border-collapse: collapse; }
-    th, td { border:1px solid #ccc; padding:8px; text-align:center; }
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: auto;
+        background: #f0f0f0;
+        font-family: sans-serif;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+    th, td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: center;
+        word-wrap: break-word;
+    }
 </style>
 </head>
 <body>
@@ -16,7 +32,7 @@
 <script>
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pub?output=tsv";
 
-// 順位に応じた色
+// 順位ごとの色
 const RANK_COLORS = {
   "1": "#f9ca00",
   "2": "#c0c0c0",
@@ -24,39 +40,42 @@ const RANK_COLORS = {
 };
 
 async function loadSheet() {
-    const res = await fetch(SHEET_URL + "?t=" + new Date().getTime());
-    const text = await res.text();
-    const rows = text.trim().split("\n").map(r => r.split("\t"));
+    try {
+        const res = await fetch(SHEET_URL + "&t=" + new Date().getTime());
+        const text = await res.text();
+        const rows = text.trim().split("\n").map(r => r.split("\t"));
 
-    const container = document.getElementById("sheetContainer");
-    container.innerHTML = "";
+        const container = document.getElementById("sheetContainer");
+        container.innerHTML = "";
 
-    const table = document.createElement("table");
+        const table = document.createElement("table");
 
-    rows.forEach((row, rowIndex) => {
-        const tr = document.createElement("tr");
+        rows.forEach((row, rowIndex) => {
+            const tr = document.createElement("tr");
 
-        row.forEach((cell, colIndex) => {
-            const td = document.createElement(rowIndex===0 ? "th" : "td");
-            td.textContent = cell;
+            row.forEach((cell, colIndex) => {
+                const td = document.createElement(rowIndex === 0 ? "th" : "td");
+                td.textContent = cell;
 
-            // ✅ 1行目は見出しとしてそのまま
-            if(rowIndex > 0) {
-                const rank = row[0];  // 順位列を1列目と仮定
-                if(RANK_COLORS[rank] && (colIndex===0 || colIndex===1 || colIndex===2)) {
-                    // 順位、チーム名、得点列に同色
-                    td.style.backgroundColor = RANK_COLORS[rank];
-                    td.style.color = "white";
+                if(rowIndex > 0) {
+                    const rank = row[0].trim(); // 順位列を1列目と仮定
+                    if(RANK_COLORS[rank] && (colIndex === 0 || colIndex === 1 || colIndex === 2)) {
+                        // 順位、チーム名、得点列に同色
+                        td.style.backgroundColor = RANK_COLORS[rank];
+                        td.style.color = "white";
+                    }
                 }
-            }
 
-            tr.appendChild(td);
+                tr.appendChild(td);
+            });
+
+            table.appendChild(tr);
         });
 
-        table.appendChild(tr);
-    });
-
-    container.appendChild(table);
+        container.appendChild(table);
+    } catch (e) {
+        console.error("スプレッドシート読み込みエラー", e);
+    }
 }
 
 // 初回読み込みと5秒ごとの更新
