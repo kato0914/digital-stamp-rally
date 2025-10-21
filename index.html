@@ -3,26 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <title>Googleスプレッドシート表示</title>
+
+    <!-- ✅ スマホ対応でズームを有効にする -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
     <style>
         html, body {
             margin: 0;
             padding: 0;
             height: 100%;
-            overflow: auto;
+            overflow: hidden; /* スクロールをiframeに任せる */
+            background: #f0f0f0;
         }
+
         .iframe-container {
             width: 100%;
             height: 100%;
             overflow: auto;
+            -webkit-overflow-scrolling: touch; /* iOSでの慣性スクロール対応 */
         }
+
         iframe {
             width: 100%;
-            min-height: 100vh;
+            height: 100%;
             border: none;
+            touch-action: manipulation; /* タッチ操作の許可 */
+            -ms-touch-action: manipulation;
         }
     </style>
+
     <script>
-        // 60秒ごとにページをリロード
+        // ✅ 60秒ごとにページをリロード
         setTimeout(function() {
             location.reload();
         }, 60000);
@@ -30,7 +41,10 @@
 </head>
 <body>
     <div class="iframe-container">
-        <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pubhtml?gid=1845744529&single=true&widget=true&headers=false"></iframe>
-dy>
+        <iframe 
+            src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pubhtml?gid=1845744529&single=true&widget=true&headers=false"
+            allowfullscreen>
+        </iframe>
+    </div>
+</body>
 </html>
-``
