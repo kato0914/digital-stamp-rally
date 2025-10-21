@@ -1,63 +1,54 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>Googleスプレッドシート表示</title>
-
-    <!-- ✅ スマホ対応＆ズーム有効 -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-
-    <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden;
-            background: #f0f0f0;
-        }
-
-        .iframe-container {
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            -webkit-overflow-scrolling: touch; /* iOS慣性スクロール */
-        }
-
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            touch-action: manipulation;
-        }
-
-        /* ✅ 背景色があるセルの文字色を白に */
-        table td[style*="background-color"] {
-            color: white !important;
-        }
-    </style>
-
-    <script>
-        const sheetBaseUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pubhtml?gid=1845744529&single=true&widget=true&headers=false";
-
-        function reloadIframe() {
-            const container = document.querySelector(".iframe-container");
-            container.innerHTML = ""; // 古いiframeを削除
-            const iframe = document.createElement("iframe");
-            iframe.id = "sheetFrame";
-            iframe.allowFullscreen = true;
-            // ✅ タイムスタンプでキャッシュ回避
-            iframe.src = sheetBaseUrl + "&t=" + new Date().getTime();
-            container.appendChild(iframe);
-        }
-
-        window.onload = function() {
-            reloadIframe();
-            // ✅ 5秒ごとに再読み込み
-            setInterval(reloadIframe, 5000);
-        };
-    </script>
+<meta charset="UTF-8">
+<title>Googleスプレッドシート表示（リアルタイム更新）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body { margin:0; padding:0; font-family:sans-serif; background:#f0f0f0; }
+  table { border-collapse: collapse; width: 100%; }
+  td, th { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  .container { padding: 10px; overflow:auto; max-height: 100vh; }
+</style>
 </head>
 <body>
-    <div class="iframe-container"></div>
+<div class="container">
+  <table id="sheetTable"></table>
+</div>
+
+<script>
+// Google スプレッドシートの公開用 URL（tsv 出力用）
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pub?gid=1845744529&single=true&output=tsv";
+
+// スプレッドシートを取得して HTML 表示
+async function loadSheet() {
+  try {
+    const res = await fetch(SHEET_URL + "&cb=" + Date.now()); // キャッシュ回避
+    const tsv = await res.text();
+    const rows = tsv.trim().split("\n").map(r => r.split("\t"));
+
+    const table = document.getElementById("sheetTable");
+    table.innerHTML = "";
+
+    rows.forEach((row, i) => {
+      const tr = document.createElement("tr");
+      row.forEach(cell => {
+        const td = document.createElement(i===0 ? "th" : "td");
+        td.textContent = cell;
+        tr.appendChild(td);
+      });
+      table.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("スプレッドシートの読み込みに失敗しました", err);
+  }
+}
+
+// 初回ロード
+loadSheet();
+
+// 10秒ごとに更新
+setInterval(loadSheet, 10000);
+</script>
 </body>
 </html>
