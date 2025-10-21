@@ -1,70 +1,61 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>Googleスプレッドシート表示（順位色付き）</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-  body { margin:0; padding:0; font-family:sans-serif; background:#f0f0f0; }
-  table { border-collapse: collapse; width: 100%; }
-  td, th { border: 1px solid #ccc; padding: 8px; text-align: left; }
-  .container { padding: 10px; overflow:auto; max-height: 100vh; }
-</style>
-</head>
-<body>
-<div class="container">
-  <table id="sheetTable"></table>
-</div>
+    <meta charset="UTF-8">
+    <title>Googleスプレッドシート表示</title>
 
-<script>
-// Google スプレッドシートの公開用 URL（tsv 出力用）
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pub?gid=1845744529&single=true&output=tsv";
+    <!-- ✅ スマホ対応＆ズーム有効 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-// 順位に応じた色
-const RANK_COLORS = {
-  "1": "#f9ca00",  // ゴールド
-  "2": "#c0c0c0",  // シルバー
-  "3": "#762f07"   // ブロンズ
-};
-
-async function loadSheet() {
-  try {
-    const res = await fetch(SHEET_URL + "&cb=" + Date.now()); // キャッシュ回避
-    const tsv = await res.text();
-    const rows = tsv.trim().split("\n").map(r => r.split("\t"));
-
-    const table = document.getElementById("sheetTable");
-    table.innerHTML = "";
-
-    rows.forEach((row, i) => {
-      const tr = document.createElement("tr");
-      row.forEach((cell, j) => {
-        const td = document.createElement(i===0 ? "th" : "td");
-        td.textContent = cell;
-
-        // ヘッダー以外で順位列に応じた色付け
-        if (i > 0) {
-          const rank = row[0].trim(); // 順位は1列目
-          const color = RANK_COLORS[rank];
-          if (color && (j === 0 || j === 1 || j === 2)) { // 順位・チーム名・得点列
-            td.style.backgroundColor = color;
-          }
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background: #f0f0f0;
         }
 
-        tr.appendChild(td);
-      });
-      table.appendChild(tr);
-    });
-  } catch (err) {
-    console.error("スプレッドシートの読み込みに失敗しました", err);
-  }
-}
+        .iframe-container {
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch; /* iOS慣性スクロール */
+        }
 
-// 初回ロード
-loadSheet();
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            touch-action: manipulation;
+        }
 
-// 10秒ごとに更新
-setInterval(loadSheet, 5000);
-</script>
+        /* ✅ 背景色があるセルの文字色を白にする */
+        table td[style*="background-color"] {
+            color: white !important;
+        }
+    </style>
+
+    <script>
+        const sheetBaseUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pubhtml?gid=1845744529&single=true&widget=true&headers=false";
+
+        function reloadIframe() {
+            const iframe = document.getElementById("sheetFrame");
+            // ✅ キャッシュ回避のためにタイムスタンプを付ける
+            iframe.src = sheetBaseUrl + "&t=" + new Date().getTime();
+        }
+
+        // ✅ 初回ロード時に設定
+        window.onload = function() {
+            reloadIframe();
+            // ✅ 5秒ごとに再読み込み
+            setInterval(reloadIframe, 5000);
+        };
+    </script>
+</head>
+<body>
+    <div class="iframe-container">
+        <iframe id="sheetFrame" allowfullscreen></iframe>
+    </div>
 </body>
 </html>
