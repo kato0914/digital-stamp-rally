@@ -1,64 +1,112 @@
-<script>
-const API_URL = "https://script.google.com/macros/s/AKfycb.../exec";
-
-async function loadSheet() {
-  try {
-    const container = document.getElementById('scrollContainer');
-    if (!container) {
-      console.error("scrollContainer が見つかりません");
-      return;
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>デジタルスタンプラリー 順位表</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      background: #f0f0f0;
     }
 
-    const scrollLeft = container.scrollLeft;
-    const scrollTop = container.scrollTop;
-
-    const res = await fetch(API_URL + `?t=${Date.now()}`, { cache: "no-store" });
-    const data = await res.json();
-    console.log("取得データ:", data);
-
-    const table = document.getElementById("sheetTable");
-    table.innerHTML = "";
-
-    if (!data || data.length === 0) {
-      console.warn("データが空です");
-      return;
+    .container {
+      padding: 10px;
+      overflow-x: auto;
+      max-height: 100vh;
     }
 
-    const headers = Object.keys(data[0]);
-    const thead = document.createElement("thead");
-    const headerRow = document.createElement("tr");
-    headers.forEach(h => {
-      const th = document.createElement("th");
-      th.textContent = h;
-      headerRow.appendChild(th);
+    table {
+      border-collapse: collapse;
+      min-width: 700px;
+      margin: 0 auto;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    thead {
+      background: #ddd;
+      position: sticky;
+      top: 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- ✅ scrollContainerを必ず追加 -->
+  <div class="container" id="scrollContainer">
+    <table id="sheetTable"></table>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycb.../exec";
+
+    async function loadSheet() {
+      try {
+        const container = document.getElementById('scrollContainer');
+        if (!container) {
+          console.error("scrollContainer が見つかりません");
+          return;
+        }
+
+        const scrollLeft = container.scrollLeft;
+        const scrollTop = container.scrollTop;
+
+        const res = await fetch(API_URL + `?t=${Date.now()}`, { cache: "no-store" });
+        const data = await res.json();
+        console.log("取得データ:", data);
+
+        const table = document.getElementById("sheetTable");
+        table.innerHTML = "";
+
+        if (!data || data.length === 0) {
+          console.warn("データが空です");
+          return;
+        }
+
+        const headers = Object.keys(data[0]);
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+        headers.forEach(h => {
+          const th = document.createElement("th");
+          th.textContent = h;
+          headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        data.forEach(row => {
+          const tr = document.createElement("tr");
+          headers.forEach(h => {
+            const td = document.createElement("td");
+            td.textContent = row[h] ?? "";
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+
+        setTimeout(() => {
+          container.scrollLeft = scrollLeft;
+          container.scrollTop = scrollTop;
+        }, 50);
+
+      } catch (err) {
+        console.error("APIの読み込みに失敗しました", err);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadSheet();
+      setInterval(loadSheet, 10000);
     });
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
-
-    const tbody = document.createElement("tbody");
-    data.forEach(row => {
-      const tr = document.createElement("tr");
-      headers.forEach(h => {
-        const td = document.createElement("td");
-        td.textContent = row[h] ?? "";
-        tr.appendChild(td);
-      });
-      tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
-
-    setTimeout(() => {
-      container.scrollLeft = scrollLeft;
-      container.scrollTop = scrollTop;
-    }, 50);
-
-  } catch (err) {
-    console.error("APIの読み込みに失敗しました", err);
-  }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  loadSheet();
-  setInterval(loadSheet, 10000);
-});
-</script>
+  </script>
+</body>
+</html>
