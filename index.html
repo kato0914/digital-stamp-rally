@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Googleスプレッドシート表示（軽量化・中央寄せ）</title>
+<title>Googleスプレッドシート表示（軽量・スクロール保持）</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body {
@@ -14,7 +14,7 @@
 
   .container {
     padding: 10px;
-    overflow-x:auto; /* 横スクロール可能 */
+    overflow:auto;
     max-height: 100vh;
   }
 
@@ -45,7 +45,7 @@
 </style>
 </head>
 <body>
-<div class="container">
+<div class="container" id="scrollContainer">
   <table id="sheetTable"></table>
 </div>
 
@@ -60,22 +60,26 @@ const RANK_COLORS = {
 
 async function loadSheet() {
   try {
-    const container = document.querySelector('.container');
+    const container = document.getElementById('scrollContainer');
+    // 現在のスクロール位置を保存（横・縦）
     const scrollLeft = container.scrollLeft;
+    const scrollTop = container.scrollTop;
 
-    const res = await fetch(SHEET_URL + `&cb=${Date.now()}&r=${Math.random()}`, { cache: "no-store" });
+    const res = await fetch(SHEET_URL + `&cb=${Date.now()}&r=${Math.random()}`, {
+      cache: "no-store"
+    });
     const tsv = await res.text();
     const rows = tsv.trim().split("\n").map(r => r.split("\t"));
 
     const table = document.getElementById("sheetTable");
 
-    // 行数が違う場合は行を追加/削除
+    // 行数を調整
     while (table.rows.length < rows.length) table.appendChild(document.createElement("tr"));
     while (table.rows.length > rows.length) table.deleteRow(table.rows.length - 1);
 
     rows.forEach((row, i) => {
       const tr = table.rows[i];
-      // セル数調整
+      // セル数を調整
       while (tr.cells.length < row.length) tr.appendChild(document.createElement(i===0?"th":"td"));
       while (tr.cells.length > row.length) tr.deleteCell(tr.cells.length - 1);
 
@@ -83,7 +87,7 @@ async function loadSheet() {
         const td = tr.cells[j];
         td.textContent = cell;
 
-        // ヘッダー以外の順位列色付け
+        // ヘッダー以外の順位列に色付け
         if (i > 0 && (j === 0 || j === 1 || j === 2)) {
           const rank = row[0].trim();
           const color = RANK_COLORS[rank];
@@ -101,7 +105,12 @@ async function loadSheet() {
       });
     });
 
-    container.scrollLeft = scrollLeft; // スクロール位置を維持
+    // 少し待ってからスクロール位置を復元（DOM反映後）
+    setTimeout(() => {
+      container.scrollLeft = scrollLeft;
+      container.scrollTop = scrollTop;
+    }, 50);
+
   } catch (err) {
     console.error("スプレッドシートの読み込みに失敗しました", err);
   }
