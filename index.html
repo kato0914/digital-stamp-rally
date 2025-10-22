@@ -1,15 +1,20 @@
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycb.../exec"; // 実際のURL
+const API_URL = "https://script.google.com/macros/s/AKfycb.../exec";
 
 async function loadSheet() {
   try {
     const container = document.getElementById('scrollContainer');
+    if (!container) {
+      console.error("scrollContainer が見つかりません");
+      return;
+    }
+
     const scrollLeft = container.scrollLeft;
     const scrollTop = container.scrollTop;
 
     const res = await fetch(API_URL + `?t=${Date.now()}`, { cache: "no-store" });
     const data = await res.json();
-    console.log("取得データ:", data); // ← デバッグ用
+    console.log("取得データ:", data);
 
     const table = document.getElementById("sheetTable");
     table.innerHTML = "";
@@ -35,7 +40,7 @@ async function loadSheet() {
       const tr = document.createElement("tr");
       headers.forEach(h => {
         const td = document.createElement("td");
-        td.textContent = row[h] ?? ""; // nullやundefinedを空文字に
+        td.textContent = row[h] ?? "";
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
@@ -52,6 +57,8 @@ async function loadSheet() {
   }
 }
 
-loadSheet();
-setInterval(loadSheet, 10000);
+document.addEventListener("DOMContentLoaded", () => {
+  loadSheet();
+  setInterval(loadSheet, 10000);
+});
 </script>
