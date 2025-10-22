@@ -1,126 +1,119 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>Googleスプレッドシート表示（軽量・スクロール保持）</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-  body {
-    margin:0;
-    padding:0;
-    font-family:sans-serif;
-    background:#f0f0f0;
-  }
-
-  .container {
-    padding: 10px;
-    overflow:auto;
-    max-height: 100vh;
-  }
-
-  table {
-    border-collapse: collapse;
-    table-layout: auto;
-    width: auto;
-    max-width: 100%;
-    margin: 0 auto;
-  }
-
-  th, td {
-    border: 1px solid #ccc;
-    padding: 8px;
-    text-align: center;
-    white-space: nowrap;
-    max-width: 300px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  @media (max-width: 600px) {
-    th, td {
-      padding: 6px;
-      font-size: 14px;
+  <meta charset="UTF-8">
+  <title>Googleスプレッドシート表示（軽量・スクロール保持）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin:0;
+      padding:0;
+      font-family:sans-serif;
+      background:#f0f0f0;
     }
-  }
-</style>
+
+    .container {
+      padding: 10px;
+      overflow:auto;
+      max-height: 100vh;
+    }
+
+    table {
+      border-collapse: collapse;
+      table-layout: auto;
+      width: auto;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+      white-space: nowrap;
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    @media (max-width: 600px) {
+      th, td {
+        padding: 6px;
+        font-size: 14px;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="container" id="scrollContainer">
-  <table id="sheetTable"></table>
-</div>
+  <div class="container" id="scrollContainer">
+    <table id="sheetTable"></table>
+  </div>
 
-<script>
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pub?gid=1845744529&single=true&output=tsv";
+  <script>
+    const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pub?gid=1845744529&single=true&output=tsv";
 
-const RANK_COLORS = {
-  "1": "#f9ca00",
-  "2": "#c0c0c0",
-  "3": "#762f07"
-};
+    const RANK_COLORS = {
+      "1": "#f9ca00",
+      "2": "#c0c0c0",
+      "3": "#762f07"
+    };
 
-async function loadSheet() {
-  try {
-    const container = document.getElementById('scrollContainer');
-    // 現在のスクロール位置を保存（横・縦）
-    const scrollLeft = container.scrollLeft;
-    const scrollTop = container.scrollTop;
+    async function loadSheet() {
+      try {
+        const container = document.getElementById('scrollContainer');
+        const scrollLeft = container.scrollLeft;
+        const scrollTop = container.scrollTop;
 
-    const res = await fetch(SHEET_URL + `&cb=${Date.now()}&r=${Math.random()}`, {
-      cache: "no-store"
-    });
-    const tsv = await res.text();
-    const rows = tsv.trim().split("\n").map(r => r.split("\t"));
+        const res = await fetch(SHEET_URL + `&cb=${Date.now()}&r=${Math.random()}`, {
+          cache: "no-store"
+        });
+        const tsv = await res.text();
+        const rows = tsv.trim().split("\n").map(r => r.split("\t"));
 
-    const table = document.getElementById("sheetTable");
+        const table = document.getElementById("sheetTable");
 
-    // 行数を調整
-    while (table.rows.length < rows.length) table.appendChild(document.createElement("tr"));
-    while (table.rows.length > rows.length) table.deleteRow(table.rows.length - 1);
+        while (table.rows.length < rows.length) table.appendChild(document.createElement("tr"));
+        while (table.rows.length > rows.length) table.deleteRow(table.rows.length - 1);
 
-    rows.forEach((row, i) => {
-      const tr = table.rows[i];
-      // セル数を調整
-      while (tr.cells.length < row.length) tr.appendChild(document.createElement(i===0?"th":"td"));
-      while (tr.cells.length > row.length) tr.deleteCell(tr.cells.length - 1);
+        rows.forEach((row, i) => {
+          const tr = table.rows[i];
+          while (tr.cells.length < row.length) tr.appendChild(document.createElement(i===0?"th":"td"));
+          while (tr.cells.length > row.length) tr.deleteCell(tr.cells.length - 1);
 
-      row.forEach((cell, j) => {
-        const td = tr.cells[j];
-        td.textContent = cell;
+          row.forEach((cell, j) => {
+            const td = tr.cells[j];
+            td.textContent = cell;
 
-        // ヘッダー以外の順位列に色付け
-        if (i > 0 && (j === 0 || j === 1 || j === 2)) {
-          const rank = row[0].trim();
-          const color = RANK_COLORS[rank];
-          if (color) {
-            td.style.backgroundColor = color;
-            td.style.color = "#ffffff";
-          } else {
-            td.style.backgroundColor = "";
-            td.style.color = "";
-          }
-        } else if (i === 0) {
-          td.style.backgroundColor = "";
-          td.style.color = "";
-        }
-      });
-    });
+            if (i > 0 && (j === 0 || j === 1 || j === 2)) {
+              const rank = row[0].trim();
+              const color = RANK_COLORS[rank];
+              if (color) {
+                td.style.backgroundColor = color;
+                td.style.color = "#ffffff";
+              } else {
+                td.style.backgroundColor = "";
+                td.style.color = "";
+              }
+            } else if (i === 0) {
+              td.style.backgroundColor = "";
+              td.style.color = "";
+            }
+          });
+        });
 
-    // 少し待ってからスクロール位置を復元（DOM反映後）
-    setTimeout(() => {
-      container.scrollLeft = scrollLeft;
-      container.scrollTop = scrollTop;
-    }, 50);
+        setTimeout(() => {
+          container.scrollLeft = scrollLeft;
+          container.scrollTop = scrollTop;
+        }, 50);
 
-  } catch (err) {
-    console.error("スプレッドシートの読み込みに失敗しました", err);
-  }
-}
+      } catch (err) {
+        console.error("スプレッドシートの読み込みに失敗しました", err);
+      }
+    }
 
-// 初回ロード
-loadSheet();
-
-// 10秒ごとに更新
-setInterval(loadSheet, 10000);
-</script>
+    loadSheet();
+    setInterval(loadSheet, 10000);
+  </script>
 </body>
 </html>
+``
