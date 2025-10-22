@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>デジタルスタンプラリー　順位表</title>
+  <title>デジタルスタンプラリー 順位表</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
@@ -14,13 +14,13 @@
 
     .container {
       padding: 10px;
-      overflow: auto;
+      overflow-x: auto; /* 横スクロール対応 */
       max-height: 100vh;
     }
 
     table {
       border-collapse: collapse;
-      width: 100%;
+      min-width: 700px; /* A～G列分の幅を確保 */
       margin: 0 auto;
     }
 
@@ -29,9 +29,12 @@
       padding: 8px;
       text-align: center;
       white-space: nowrap;
-      max-width: 300px;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    }
+
+    thead {
+      background: #ddd;
+      position: sticky;
+      top: 0;
     }
 
     @media (max-width: 600px) {
@@ -48,7 +51,7 @@
   </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzoTqaJC6Q__-hgDb25KzcWNT3cy1zHyAcsQvbgco9ImLsjio9k0_aU1HI0Qsbiw2jd/exec"; // ← 実際のAPI URLに置き換えてください
+    const API_URL = "https://script.google.com/macros/s/AKfycb.../exec"; // ←実際のAPI URLに置き換え
 
     async function loadSheet() {
       try {
@@ -102,4 +105,3 @@
   </script>
 </body>
 </html>
-``
