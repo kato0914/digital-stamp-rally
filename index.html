@@ -2,27 +2,25 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Googleスプレッドシート表示（軽量・スクロール保持）</title>
+  <title>スプレッドシートAPI表示</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      margin:0;
-      padding:0;
-      font-family:sans-serif;
-      background:#f0f0f0;
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      background: #f0f0f0;
     }
 
     .container {
       padding: 10px;
-      overflow:auto;
+      overflow: auto;
       max-height: 100vh;
     }
 
     table {
       border-collapse: collapse;
-      table-layout: auto;
-      width: auto;
-      max-width: 100%;
+      width: 100%;
       margin: 0 auto;
     }
 
@@ -50,13 +48,7 @@
   </div>
 
   <script>
-    const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZkFdVPEnuMTjF-sy8cSUeKEXmVbSUpkblKDFgdVDje5c99_Zt9of2GDSYv7HiN9P3ExV_vrxllMdv/pub?gid=1845744529&single=true&output=tsv";
-
-    const RANK_COLORS = {
-      "1": "#f9ca00",
-      "2": "#c0c0c0",
-      "3": "#762f07"
-    };
+    const API_URL = "https://script.google.com/macros/s/AKfycbzoTqaJC6Q__-hgDb25KzcWNT3cy1zHyAcsQvbgco9ImLsjio9k0_aU1HI0Qsbiw2jd/exec"; // ← 実際のAPI URLに置き換えてください
 
     async function loadSheet() {
       try {
@@ -64,42 +56,36 @@
         const scrollLeft = container.scrollLeft;
         const scrollTop = container.scrollTop;
 
-        const res = await fetch(SHEET_URL + `&cb=${Date.now()}&r=${Math.random()}`, {
-          cache: "no-store"
-        });
-        const tsv = await res.text();
-        const rows = tsv.trim().split("\n").map(r => r.split("\t"));
+        const res = await fetch(API_URL + `?t=${Date.now()}`, { cache: "no-store" });
+        const data = await res.json();
 
         const table = document.getElementById("sheetTable");
+        table.innerHTML = "";
 
-        while (table.rows.length < rows.length) table.appendChild(document.createElement("tr"));
-        while (table.rows.length > rows.length) table.deleteRow(table.rows.length - 1);
+        if (data.length === 0) return;
 
-        rows.forEach((row, i) => {
-          const tr = table.rows[i];
-          while (tr.cells.length < row.length) tr.appendChild(document.createElement(i===0?"th":"td"));
-          while (tr.cells.length > row.length) tr.deleteCell(tr.cells.length - 1);
-
-          row.forEach((cell, j) => {
-            const td = tr.cells[j];
-            td.textContent = cell;
-
-            if (i > 0 && (j === 0 || j === 1 || j === 2)) {
-              const rank = row[0].trim();
-              const color = RANK_COLORS[rank];
-              if (color) {
-                td.style.backgroundColor = color;
-                td.style.color = "#ffffff";
-              } else {
-                td.style.backgroundColor = "";
-                td.style.color = "";
-              }
-            } else if (i === 0) {
-              td.style.backgroundColor = "";
-              td.style.color = "";
-            }
-          });
+        const headers = Object.keys(data[0]);
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+        headers.forEach(h => {
+          const th = document.createElement("th");
+          th.textContent = h;
+          headerRow.appendChild(th);
         });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        data.forEach(row => {
+          const tr = document.createElement("tr");
+          headers.forEach(h => {
+            const td = document.createElement("td");
+            td.textContent = row[h];
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
 
         setTimeout(() => {
           container.scrollLeft = scrollLeft;
@@ -107,7 +93,7 @@
         }, 50);
 
       } catch (err) {
-        console.error("スプレッドシートの読み込みに失敗しました", err);
+        console.error("APIの読み込みに失敗しました", err);
       }
     }
 
