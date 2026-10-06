@@ -58,7 +58,11 @@
         const scrollLeft = container.scrollLeft;
         const scrollTop = container.scrollTop;
 
-        const res = await fetch(API_URL + `?t=${Date.now()}`, { cache: "no-store" });
+        const res = await fetch(API_URL, {
+  method: "GET",
+  cache: "no-store",
+  redirect: "follow"
+});
         const data = await res.json();
         console.log("取得データ:", data);
 
